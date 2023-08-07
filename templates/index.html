@@ -1,0 +1,109 @@
+{% extends 'layout.html' %}
+{% load static %}
+{% block content %}
+<div class="chat-container" style="background-color: #423e3e;">
+  <div class="card" style="background-color: #2c2c2c; border-radius: 0px;">
+      <h1 style="color: white;text-decoration:none;">FitAI</h1>
+      <hr>
+      <div class="header-container" style="display: flex;align-start: ;justify-content: space-between; background-color: #2c2c2c;">
+        <div>
+          <h4 style="color: white;text-decoration:none;">Welcome, {{user.username}}</h4> 
+        </div>
+
+        <div>
+          <a style="color: white;text-decoration:none;" href="logout"><h7>Logout</h7></a>
+        </div>
+
+        <div>
+          <a style="color: white;text-decoration:none;" href="history"><h7>Chat History</h7></a>
+        </div>
+      </div>
+  </div>
+
+  <ul class="list-unstyled messages-list" style="margin-top: 10px; margin-left: 3px; margin-right: 3px;">
+        <li class="message received" style=" background-color: gray; border-radius: 4px; color: white;">
+          <div class="message-text" style=" background-color: gray;">
+            <div class="message-sender"style=" background-color: gray;">
+              <b>AI Fitness Trainer</b>
+            </div>
+            <div class="message-content" style=" background-color: gray;">
+              <p>Hi {{user.username}}, I am your personal AI fitness trainer! You can ask me anything fitness related.</p>
+              <p>Try:</p>
+              <p>Including your age, body type, fitness goal, and how you'd like me to help you with it.</p>
+              <p>Warning: My responses might take a bit to load. Do some push ups while you wait!</p>
+            </div>
+          </div>
+        </li> 
+  </ul>
+
+  <br><br>
+  <br><br>
+  <br><br>
+
+  <form class="message-form">
+    {%csrf_token%}
+    <div class="input-group">
+      <input type="text" class="form-control message-input" placeholder="Type your message...">
+      <div class="input-group-append">
+        <button type="submit" class="btn btn-primary btn-send" style="background-color: #023020;">Send</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+  const messagesList = document.querySelector('.messages-list');
+  const messageForm = document.querySelector('.message-form');
+  const messageInput = document.querySelector('.message-input');
+
+  messageForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+
+    const message = messageInput.value.trim();
+    if (message.length === 0) {
+      return;
+    }
+
+    const messageItem = document.createElement('li');
+    messageItem.classList.add('message', 'sent');
+    messageItem.innerHTML = `
+        <div class="message-text" style="border-radius: 0px;color: white; background-color: #696969;">
+            <div class="message-sender">
+                <b>You</b>
+            </div>
+            <div class="message-content">
+                ${message}
+            </div>
+        </div>`;
+    messagesList.appendChild(messageItem);
+
+    messageInput.value = '';
+
+    fetch('', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        'csrfmiddlewaretoken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        'message': message
+      })
+    })
+      .then(response => response.json())
+      .then(data => {
+        const response = data.response;
+        const messageItem = document.createElement('li');
+        messageItem.classList.add('message', 'received');
+        messageItem.innerHTML = `
+        <div class="message-text" style="border-radius: 0px; color: white; background-color: gray;">
+            <div class="message-sender" style="background-color: gray;">
+              <b>AI Fitness Trainer</b>
+            </div>
+            <div class="message-content" style="background-color: gray;">
+                ${response}
+            </div>
+        </div>
+          `;
+        messagesList.appendChild(messageItem);
+      });
+  });
+</script>
+{% endblock %}
